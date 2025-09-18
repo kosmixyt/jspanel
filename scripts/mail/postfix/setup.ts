@@ -63,86 +63,11 @@ export async function SetupPostfix(config: SetupPostfixOptions) {
         fs.copyFileSync(`${assetPath}/${file}`, `${postfixPath}/${finalFilename}`);
         replaceTextInFile(`${postfixPath}/${finalFilename}`, ["mail_user", "mail_password", "mail_name"], [config.dbUser, config.dbPassword, config.dbName]);
     }
-
-
-
-    const masterCfExcerpt = `
-    smtp      inet  n       -       n       -       -       smtpd
-    #smtp      inet  n       -       -       -       1       postscreen
-    #smtpd     pass  -       -       -       -       -       smtpd
-    #dnsblog   unix  -       -       -       -       0       dnsblog
-    #tlsproxy  unix  -       -       -       -       0       tlsproxy
-    submission inet n       -       y      -       -       smtpd
-        -o syslog_name=postfix/submission
-        -o smtpd_tls_security_level=encrypt
-        -o smtpd_tls_wrappermode=yes
-        -o smtpd_sasl_auth_enable=yes
-        -o smtpd_relay_restrictions=permit_sasl_authenticated,reject
-        -o smtpd_sasl_type=dovecot
-        -o smtpd_sasl_path=private/auth
-        -o smtpd_reject_unlisted_recipient=no
-        -o smtpd_client_restrictions=permit_sasl_authenticated,reject
-        -o milter_macro_daemon_name=ORIGINATING
-    smtps     inet  n       -       -       -       -       smtpd
-        -o syslog_name=postfix/smtps
-        -o smtpd_tls_wrappermode=yes
-        -o smtpd_sasl_auth_enable=yes
-        -o smtpd_sasl_type=dovecot
-        -o smtpd_sasl_path=private/auth
-        -o smtpd_client_restrictions=permit_sasl_authenticated,reject
-        -o milter_macro_daemon_name=ORIGINATING
-    `;
-
-    const masterCfPath = `${postfixPath}/master.cf`;
-    let masterCfContent = fs.readFileSync(masterCfPath, "utf8");
-
-    // Replace the block starting with "smtp      inet" and ending before the next non-indented line after "smtps"
-    masterCfContent = masterCfContent.replace(
-        /smtp\s+inet.*?smtps\s+inet[\s\S]+?(?=^[^ \t]|$)/m,
-        masterCfExcerpt
-    );
-
-    fs.writeFileSync(masterCfPath, masterCfContent, "utf8");
-
-    // Execute postconf -M and add its output before the pickup unix line
-    const postconfOutput = await $`postconf -M`.text();
-
-    // Read the current master.cf content
-    let currentMasterCf = fs.readFileSync(masterCfPath, "utf8");
-
-    // Find the line with "pickup unix" and insert postconf -M output before it
-    const lines = currentMasterCf.split('\n');
-    const pickupIndex = lines.findIndex(line => line.includes('pickup') && line.includes('unix'));
-
-    if (pickupIndex !== -1) {
-        // Insert postconf -M output as comments before pickup unix line
-        const postconfLines = postconfOutput.split('\n').filter(line => line.trim() !== '');
-        const commentedPostconf = postconfLines.map(line => `# ${line}`);
-
-        lines.splice(pickupIndex, 0, '# Output from postconf -M:', ...commentedPostconf, '');
-
-        // Write the modified content back to master.cf
-        fs.writeFileSync(masterCfPath, lines.join('\n'), "utf8");
-    }
-
     // restart postfix service
     await $`systemctl restart postfix`.quiet();
 
 
-    // const domainCheck = await $`sudo postmap -q ${config.testDomain} mysql:/etc/postfix/mysql-virtual-mailbox-domains.cf`.text();
-    // if (domainCheck.trim()) {
-    //     console.log("Postfix is working (domain check)");
-    // } else {
-    //     return console.error("Postfix is not working (domain check)");
-    // }
-    // const emailCheck = await $`sudo postmap -q ${config.testEmail} mysql:/etc/postfix/mysql-virtual-mailbox-maps.cf`.text();
-    // if (emailCheck.trim()) {
-    //     console.log("Postfix is working (email check)");
-    // } else {
-    //     return console.error("Postfix is not working (email check)");
-    // }
 
-    fs.copyFileSync(`${postfixPath}/master.cf`, `${postfixPath}/master.cf.orig`);
     await $`sed -i '18,39s/^#//' ${postfixPath}/master.cf`;
     await $`chmod -R o-rwx ${postfixPath}`;
     await $`systemctl restart postfix`.quiet();
