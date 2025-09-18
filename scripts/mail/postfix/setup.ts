@@ -8,6 +8,7 @@ import os from "os";
 
 const RequiredPackages = [
     "postfix",
+    "postfix-mysql",
 ]
 const postfixPath = "/etc/postfix"
 const assetPath = '/workspace/scripts/mail/postfix/assets'
@@ -48,6 +49,7 @@ export async function SetupPostfix(config: SetupPostfixOptions) {
     $`echo "postfix postfix/main_mailer_type select Internet Site" | debconf-set-selections`.quiet();
     $`echo "postfix postfix/mailname string ${config.domain.domain}" | debconf-set-selections`.quiet();
     fs.copyFileSync(`${postfixPath}/main.cf`, `${savePath}/main.cf.bak`);
+    fs.copyFileSync(`${postfixPath}/master.cf`, `${savePath}/master.cf.bak`);
     fs.copyFileSync(`${assetPath}/main.cf.kosmix`, `${postfixPath}/main.cf`);
     replaceHostnameInMainCf(config.domain.domain);
     const files = [
@@ -73,7 +75,9 @@ export async function SetupPostfix(config: SetupPostfixOptions) {
     submission inet n       -       y      -       -       smtpd
         -o syslog_name=postfix/submission
         -o smtpd_tls_security_level=encrypt
+        -o smtpd_tls_wrappermode=yes
         -o smtpd_sasl_auth_enable=yes
+        -o smtpd_relay_restrictions=permit_sasl_authenticated,reject
         -o smtpd_sasl_type=dovecot
         -o smtpd_sasl_path=private/auth
         -o smtpd_reject_unlisted_recipient=no
@@ -99,6 +103,28 @@ export async function SetupPostfix(config: SetupPostfixOptions) {
     );
 
     fs.writeFileSync(masterCfPath, masterCfContent, "utf8");
+
+    // Execute postconf -M and add its output before the pickup unix line
+    const postconfOutput = await $`postconf -M`.text();
+
+    // Read the current master.cf content
+    let currentMasterCf = fs.readFileSync(masterCfPath, "utf8");
+
+    // Find the line with "pickup unix" and insert postconf -M output before it
+    const lines = currentMasterCf.split('\n');
+    const pickupIndex = lines.findIndex(line => line.includes('pickup') && line.includes('unix'));
+
+    if (pickupIndex !== -1) {
+        // Insert postconf -M output as comments before pickup unix line
+        const postconfLines = postconfOutput.split('\n').filter(line => line.trim() !== '');
+        const commentedPostconf = postconfLines.map(line => `# ${line}`);
+
+        lines.splice(pickupIndex, 0, '# Output from postconf -M:', ...commentedPostconf, '');
+
+        // Write the modified content back to master.cf
+        fs.writeFileSync(masterCfPath, lines.join('\n'), "utf8");
+    }
+
     // restart postfix service
     await $`systemctl restart postfix`.quiet();
 

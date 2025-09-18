@@ -19,6 +19,8 @@ export async function Setup() {
         include: { domains: true },
         where: { domains: { some: { domain: "kosmix.me" } } }
     })
+
+
     // await SetupPostfix({
     //     domain: domain,
     //     dbName: "mailserver",
@@ -29,14 +31,14 @@ export async function Setup() {
     //     dbName: "mailserver",
     //     dbPassword: "mailserverpassword",
     //     dbUser: "mailuser",
-    await SetupDovecot({
-        mailserverDb: "mailserver",
-        mailserverPassword: "mailserverpassword",
-        mailserverUser: "mailuser",
-        mainDomain: domain,
-        ssl,
-    })
-    DovecotManager.AddSsl([domain], ssl)
+    // await SetupDovecot({
+    //     mailserverDb: "mailserver",
+    //     mailserverPassword: "mailserverpassword",
+    //     mailserverUser: "mailuser",
+    //     mainDomain: domain,
+    //     ssl,
+    // })
+    // DovecotManager.AddSsl([domain], ssl)
 
 }
 Setup()

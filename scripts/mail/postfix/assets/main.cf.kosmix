@@ -65,8 +65,8 @@ smtpd_relay_restrictions =
 # information on enabling SSL in the smtp client.
 
 myhostname = example.com
-#alias_maps = hash:/etc/aliases
-#alias_database = hash:/etc/aliases
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
 mydomain = example.com
 myorigin = $mydomain
 mydestination = localhost
@@ -78,7 +78,7 @@ inet_interfaces = all
 inet_protocols = all
 
 # Handing off local delivery to Dovecot's LMTP, and telling it where to store mail
-virtual_transport = lmtp:unix:private/dovecot-lmtp
+virtual_transport = lmtp:unix:private/dovecot
 
 # Virtual domains, users, and aliases
 virtual_mailbox_domains = mysql:/etc/postfix/mysql-virtual-mailbox-domains.cf
