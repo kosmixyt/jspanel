@@ -27,7 +27,6 @@ export async function Setup() {
     //     where: { domains: { some: { domain: "kosmix.me" } } }
     // })
 
-    DKIM.setupPostfix()
     // DKIM.addDomain(domain)
 
     await SetupPostfix({
@@ -47,6 +46,8 @@ export async function Setup() {
         mainDomain: domain,
         ssl,
     })
+
+    DKIM.setupPostfix()
     DovecotManager.AddSsl([domain], ssl)
     DKIM.addDomain(domain)
 
