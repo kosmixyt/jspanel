@@ -6,6 +6,12 @@ import { SetupMysql } from "./mysql/setup";
 import { DKIM } from "./mail/dkim/dkim";
 
 export async function Setup() {
+    await SetupMysql({
+        dbName: "mailserver",
+        dbPassword: "mailserverpassword",
+        dbUser: "mailuser",
+        rootPassword: "rootpassword",
+    })
     const user = await db.user.findFirstOrThrow({ where: { Admin: true } })
     if (!user) {
         throw new Error("No admin user found. Please create an admin user first.");
@@ -15,33 +21,34 @@ export async function Setup() {
         where: { domain: "kosmix.me" }
     })
     console.log("Created default domain: example.com")
-    // const ssl = await sslManager.requestCertificate([domain], user.email ?? "flo.cl25spt@gmail.com", user)
-    const ssl = await db.ssl.findFirstOrThrow({
-        include: { domains: true },
-        where: { domains: { some: { domain: "kosmix.me" } } }
-    })
+    const ssl = await sslManager.requestCertificate([domain], user.email ?? "flo.cl25spt@gmail.com", user)
+    // const ssl = await db.ssl.findFirstOrThrow({
+    //     include: { domains: true },
+    //     where: { domains: { some: { domain: "kosmix.me" } } }
+    // })
 
     DKIM.setupPostfix()
-    DKIM.addDomain(domain)
+    // DKIM.addDomain(domain)
 
-    // await SetupPostfix({
-    //     domain: domain,
+    await SetupPostfix({
+        domain: domain,
+        dbName: "mailserver",
+        dbPassword: "mailserverpassword",
+        dbUser: "mailuser",
+    })
+    // rootPassword: "rootpassword",
     //     dbName: "mailserver",
-    //     dbPassword: "mailserverpassword",
-    //     dbUser: "mailuser",
-    // })
-    //     rootPassword: "rootpassword",
-    //     dbName: "mailserver",
-    //     dbPassword: "mailserverpassword",
-    //     dbUser: "mailuser",
-    // await SetupDovecot({
-    //     mailserverDb: "mailserver",
-    //     mailserverPassword: "mailserverpassword",
-    //     mailserverUser: "mailuser",
-    //     mainDomain: domain,
-    //     ssl,
-    // })
-    // DovecotManager.AddSsl([domain], ssl)
+    //         dbPassword: "mailserverpassword",
+    //             dbUser: "mailuser",
+    await SetupDovecot({
+        mailserverDb: "mailserver",
+        mailserverPassword: "mailserverpassword",
+        mailserverUser: "mailuser",
+        mainDomain: domain,
+        ssl,
+    })
+    DovecotManager.AddSsl([domain], ssl)
+    DKIM.addDomain(domain)
 
 }
 Setup()
