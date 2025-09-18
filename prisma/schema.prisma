@@ -53,6 +53,7 @@ model User {
     Domains       Domain[]
     MailBoxes     MailBox[]
     Ssl           Ssl[]
+    Admin         Boolean   @default(false)
 }
 
 model VerificationToken {
@@ -71,6 +72,8 @@ model Ssl {
     domains   Domain[]
     Owner     User     @relation(fields: [ownerId], references: [id])
     ownerId   String
+    certPath  String
+    keyPath   String
 }
 
 model Domain {

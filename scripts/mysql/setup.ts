@@ -50,9 +50,3 @@ export async function SetupMysql(config: SetupMysqlOptions) {
 }
 
 
-// SetupMysql({
-//     rootPassword: "rootpassword",
-//     dbName: "mailserver",
-//     dbPassword: "mailserverpassword",
-//     dbUser: "mailuser",
-// })

@@ -32,7 +32,7 @@ smtpd_sasl_tls_security_options = noanonymous
 
 # Authentication
 smtpd_sasl_type = dovecot
-smtpd_sasl_path = private/auth
+smtpd_sasl_path = /var/spool/postfix/private/auth
 smtpd_sasl_auth_enable = yes
 
 # See /usr/share/doc/postfix/TLS_README.gz in the postfix-doc package for
@@ -65,8 +65,8 @@ smtpd_relay_restrictions =
 # information on enabling SSL in the smtp client.
 
 myhostname = example.com
-alias_maps = hash:/etc/aliases
-alias_database = hash:/etc/aliases
+#alias_maps = hash:/etc/aliases
+#alias_database = hash:/etc/aliases
 mydomain = example.com
 myorigin = $mydomain
 mydestination = localhost
