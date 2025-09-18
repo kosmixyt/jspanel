@@ -50,6 +50,9 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+    Domains       Domain[]
+    MailBoxes     MailBox[]
+    Ssl           Ssl[]
 }
 
 model VerificationToken {
@@ -58,4 +61,41 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+model Ssl {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    expiry    DateTime
+    domains   Domain[]
+    Owner     User     @relation(fields: [ownerId], references: [id])
+    ownerId   String
+}
+
+model Domain {
+    id        String    @id @default(cuid())
+    domain    String    @unique
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    Ssl       Ssl?      @relation(fields: [sslId], references: [id])
+    sslId     String?
+    mailBoxes MailBox[]
+    Owner     User      @relation(fields: [ownerId], references: [id])
+    ownerId   String
+}
+
+model MailBox {
+    id            String   @id @default(cuid())
+    // {username}@{domain}
+    username      String   @unique
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+    Domain        Domain   @relation(fields: [domainId], references: [id])
+    domainId      String
+    password_hash String
+    Owner         User     @relation(fields: [ownerId], references: [id])
+    ownerId       String
+    isAlias       Boolean  @default(false)
+    aliasTo       String?
 }

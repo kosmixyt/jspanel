@@ -29,6 +29,7 @@
     "@trpc/react-query": "^11.0.0",
     "@trpc/server": "^11.0.0",
     "@types/bun": "^1.2.22",
+    "@types/validator": "^13.15.3",
     "bun": "^1.2.22",
     "next": "^15.2.3",
     "next-auth": "5.0.0-beta.25",
@@ -36,6 +37,7 @@
     "react-dom": "^19.0.0",
     "server-only": "^0.0.1",
     "superjson": "^2.2.1",
+    "validator": "^13.15.15",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -49,7 +51,7 @@
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
-    "prisma": "^6.5.0",
+    "prisma": "^6.16.2",
     "tailwindcss": "^4.0.15",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.27.0"

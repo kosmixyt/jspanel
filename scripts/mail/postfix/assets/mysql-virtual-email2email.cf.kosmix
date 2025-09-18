@@ -1,0 +1,5 @@
+user = mail_user
+password = mail_password
+hosts = 127.0.0.1
+dbname = mail_name
+query = SELECT email FROM virtual_users WHERE email='%s'
