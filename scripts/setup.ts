@@ -3,6 +3,7 @@ import { sslManager } from "./certbot/ssl";
 import { DovecotManager, SetupDovecot } from "./mail/dovecot/setup";
 import { SetupPostfix } from "./mail/postfix/setup";
 import { SetupMysql } from "./mysql/setup";
+import { DKIM } from "./mail/dkim/dkim";
 
 export async function Setup() {
     const user = await db.user.findFirstOrThrow({ where: { Admin: true } })
@@ -20,6 +21,8 @@ export async function Setup() {
         where: { domains: { some: { domain: "kosmix.me" } } }
     })
 
+    DKIM.setupPostfix()
+    DKIM.addDomain(domain)
 
     // await SetupPostfix({
     //     domain: domain,
