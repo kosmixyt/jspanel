@@ -1,4 +1,5 @@
 import { $ } from "bun"
+import type { Domain } from "domain";
 
 
 
@@ -19,3 +20,22 @@ export async function SetupNginx() {
 }
 
 SetupNginx()
+
+export interface SiteOptions {
+    domains: Domain[];
+    Ssl: null | { id: string; path: string; keyPath: string; };
+    php: null | { version: string; socketPath: string; };
+    rootPath: string;
+}
+
+class NginxManager {
+    static async restart() {
+        console.log("Restarting Nginx...")
+        $`systemctl restart nginx`.quiet()
+    }
+    static async reload() {
+        console.log("Reloading Nginx...")
+        $`systemctl reload nginx`.quiet()
+    }
+    static async addSite(config: SiteOptions) { }
+}
