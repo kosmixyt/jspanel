@@ -21,14 +21,16 @@ readme_directory = no
 compatibility_level = 2
 
 # TLS parameters
-smtpd_tls_cert_file=/etc/letsencrypt/live/example.com/fullchain.pem
-smtpd_tls_key_file=/etc/letsencrypt/live/example.com/privkey.pem
+smtpd_tls_cert_file = /etc/letsencrypt/live/example.com/fullchain.pem
+smtpd_tls_key_file = /etc/letsencrypt/live/example.com/privkey.pem
 smtpd_use_tls=yes
 smtpd_tls_auth_only = yes
 smtp_tls_security_level = may
 smtpd_tls_security_level = may
 smtpd_sasl_security_options = noanonymous, noplaintext
 smtpd_sasl_tls_security_options = noanonymous
+
+smtpd_tls_server_sni_maps = hash:/etc/postfix/sni_map
 
 # Authentication
 smtpd_sasl_type = dovecot

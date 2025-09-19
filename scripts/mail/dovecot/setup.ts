@@ -359,9 +359,13 @@ export class DovecotManager {
       `;
       fs.appendFileSync("/etc/dovecot/conf.d/10-ssl.conf", sslConfig);
     }
+    await this.restart();
+    console.log(`Added ${domains.length} domain(s) to Dovecot with SSL`);
+  }
+  public static async restart() {
     console.log(`Restarting Dovecot...`);
-    await $`systemctl reload dovecot`.quiet();
-    console.log(`Dovecot reloaded.`);
+    await $`systemctl restart dovecot`.quiet();
+    console.log(`Dovecot restarted.`);
   }
 }
 

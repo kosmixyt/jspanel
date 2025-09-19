@@ -5,6 +5,7 @@ import path from "path";
 import os from "os"
 import type { User, Domain, Ssl, Prisma } from "@prisma/client";
 import { db } from "~/server/db";
+import type { PrismaClient } from "@prisma/client/extension";
 
 
 interface SslPath {
@@ -28,14 +29,15 @@ interface SslInfo {
     privateKeyPath: string;  // Chemin vers le fichier de la clé privée (privkey.pem)
 }
 
-export class sslManager {
+export class SSLManager {
+
     /**
      * Demande un certificat SSL via certbot pour les domaines et l'email spécifiés.
      * Utilise l'option --standalone : certbot lance son propre serveur web temporaire pour valider le domaine,
      * utile si aucun autre serveur web (ex: nginx, apache) ne tourne sur le port 80.
      * @returns Promise<SslPath>
      */
-    public static async requestCertificate(domains: Domain[], email: string, user: User): Promise<Prisma.SslGetPayload<{ include: { domains: true } }>> {
+    public static async requestCertificate(tx: PrismaClient, domains: Domain[], email: string, user: User): Promise<Prisma.SslGetPayload<{ include: { domains: true } }>> {
         if (domains.length === 0) {
             throw new Error("No domains specified for SSL certificate request.");
         }
@@ -54,13 +56,15 @@ export class sslManager {
             certPath: path.join("/etc/letsencrypt/live", (domains[0]!.domain as string), "fullchain.pem"),
             keyPath: path.join("/etc/letsencrypt/live", (domains[0]!.domain as string), "privkey.pem")
         };
-        const ssl = await db.ssl.create({
+        const domainsId = domains.map(d => ({ id: d.id }))
+        console.log("SSL certificate obtained:", domainsId);
+        const ssl = await tx.ssl.create({
             include: { domains: true },
             data: {
                 // today + 90 days
                 expiry: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
                 domains: {
-                    connect: domains.map(d => ({ id: d.id }))
+                    connect: domainsId
                 },
                 createdAt: new Date(),
                 updatedAt: new Date(),
@@ -178,7 +182,7 @@ export class sslManager {
 
     public static async VerifySynchronization() {
         // Implémentation de la vérification de la synchronisation
-        const certificateOnServer = await sslManager.listCertificates();
+        const certificateOnServer = await SSLManager.listCertificates();
         const certificatesInDb = await db.ssl.findMany({
             include: {
                 domains: true,

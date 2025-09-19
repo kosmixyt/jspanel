@@ -18,7 +18,6 @@ export class DKIM {
         fs.appendFileSync(signingTablePath, append)
         const cmd = await $`sudo opendkim-genkey -s mail -d ${domain.domain}`.cwd(dkimPath)
         await $`sudo chown opendkim:opendkim mail.private`.cwd(dkimPath)
-        await $`usermod -a -G postfix opendkim`
         await $`sudo systemctl restart opendkim`;
         // add to trusted hosts
         fs.appendFileSync("/etc/opendkim/trusted.hosts", `\n${domain.domain}\n*.${domain.domain}\n`)
@@ -34,5 +33,11 @@ non_smtpd_milters = \$smtpd_milters
         fs.appendFileSync(postfixConfigPath, postfixConfig);
         $`sudo systemctl restart opendkim`;
         $`sudo systemctl restart postfix`;
+    }
+    public static async restart() {
+        console.log(`Restarting DKIM...`);
+        await $`systemctl restart opendkim`.quiet();
+        await $`systemctl restart postfix`.quiet();
+        console.log(`DKIM restarted.`);
     }
 }

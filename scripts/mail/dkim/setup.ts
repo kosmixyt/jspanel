@@ -20,6 +20,8 @@ export async function SetupDkim() {
     // create opendkim spool dir
     await $`sudo mkdir -p /var/lib/opendkim/`
     await $`sudo chown opendkim:postfix /var/lib/opendkim/`
+    await $`usermod -a -G postfix opendkim`
+
     fs.mkdirSync("/etc/opendkim/keys", { recursive: true })
 
 

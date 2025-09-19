@@ -2,6 +2,7 @@ import type { Domain } from "@prisma/client";
 import { $ } from "bun";
 import fs from "fs"
 import os from "os";
+import { PostfixManager } from "./manager";
 
 
 
@@ -64,12 +65,13 @@ export async function SetupPostfix(config: SetupPostfixOptions) {
         replaceTextInFile(`${postfixPath}/${finalFilename}`, ["mail_user", "mail_password", "mail_name"], [config.dbUser, config.dbPassword, config.dbName]);
     }
     // restart postfix service
+    PostfixManager.addSsl(config.domain.domain, `/etc/letsencrypt/live/${config.domain.domain}/fullchain.pem`, `/etc/letsencrypt/live/${config.domain.domain}/privkey.pem`)
     await $`systemctl restart postfix`.quiet();
-
 
 
     await $`sed -i '18,39s/^#//' ${postfixPath}/master.cf`;
     await $`chmod -R o-rwx ${postfixPath}`;
-    await $`systemctl restart postfix`.quiet();
+    PostfixManager.restart()
 }
+
 
