@@ -2,10 +2,10 @@ Syslog                  yes
 SyslogSuccess	        yes
 LogWhy			        yes
 OversignHeaders	        From
-UserID			        opendkim
-UMask			        007
+UserID			        opendkim:postfix
+UMask			        002
 Mode                    sv
-Socket                  local:/var/lib/opendkim/opendkim.sock
+Socket                  local:/var/spool/postfix/var/run/opendkim.sock
 PidFile			        /run/opendkim/opendkim.pid
 Canonicalization    	relaxed/simple
 Selector                mail

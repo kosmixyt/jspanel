@@ -113,3 +113,9 @@ unknown_client_reject_code = 550
 unknown_hostname_reject_code = 550
 unverified_recipient_reject_code = 550
 unverified_sender_reject_code = 550
+
+# OpenDKIM integration
+milter_default_action = accept
+milter_protocol = 6
+smtpd_milters = local:/var/run/opendkim.sock
+non_smtpd_milters = $smtpd_milters

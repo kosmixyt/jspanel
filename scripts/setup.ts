@@ -10,6 +10,7 @@ import type { User } from "@prisma/client";
 import mysql from "mysql2/promise"
 import { MailManager } from "./mail/manager";
 import { DomainManager } from "./domains/domains";
+import { PostfixManager } from "./mail/postfix/manager";
 
 let localDatabase: null | mysql.Connection = null
 export const mysqlLocalDbConfig = {
@@ -104,7 +105,10 @@ async function main() {
     const connection = await getDatabase();
     console.log("Connected to database")
     const user = await getAdminUser()
-    const domain = await DomainManager.addDomain("test2.kosmix.me", user, { enableEmail: true, emailConfig: { dkimSetup: true }, requestSsl: true })
-    DomainManager.NewMailBox(domain, user, "test", "testpassword")
+    // const domain = await DomainManager.addDomain("goster.xyz", user, { enableEmail: true, emailConfig: { dkimSetup: true }, requestSsl: true })
+    // DomainManager.NewMailBox(domain, user, "kosmix", "floflo92")
+    PostfixManager.addSsl("goster.xyz", `/etc/letsencrypt/live/goster.xyz/fullchain.pem`, `/etc/letsencrypt/live/goster.xyz/privkey.pem`)
+    PostfixManager.restart()
+    console.log("Setup completed.")
 }
 main()

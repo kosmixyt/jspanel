@@ -23,16 +23,17 @@ export class DKIM {
         fs.appendFileSync("/etc/opendkim/trusted.hosts", `\n${domain.domain}\n*.${domain.domain}\n`)
         console.log(`DKIM keys generated for domain ${domain.domain}:`)
     }
-    public static setupPostfix() {
-        const postfixConfig = `
-milter_default_action = accept
-milter_protocol = 6
-smtpd_milters = local:/var/lib/opendkim/opendkim.sock
-non_smtpd_milters = \$smtpd_milters
-    `;
-        fs.appendFileSync(postfixConfigPath, postfixConfig);
-        $`sudo systemctl restart opendkim`;
-        $`sudo systemctl restart postfix`;
+    public static async setupPostfix() {
+        // Créer le répertoire pour le socket dans le chroot Postfix
+        await $`sudo mkdir -p /var/spool/postfix/var/run`.quiet();
+        await $`sudo chown opendkim:postfix /var/spool/postfix/var/run`.quiet();
+        await $`sudo chmod 755 /var/spool/postfix/var/run`.quiet();
+
+        // La configuration milter est maintenant dans le fichier main.cf.kosmix
+        // Elle sera copiée lors du déploiement de la configuration Postfix
+
+        await $`sudo systemctl restart opendkim`;
+        await $`sudo systemctl restart postfix`;
     }
     public static async restart() {
         console.log(`Restarting DKIM...`);
