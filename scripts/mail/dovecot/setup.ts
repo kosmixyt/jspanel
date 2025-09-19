@@ -109,6 +109,10 @@ si un client se connecte en imap/pop3 non ssl (ou ssl non présent dans /etc/dov
 ssl_cert = </etc/dovecot/private/dovecot.pem
 ssl_key = </etc/dovecot/private/dovecot.key
 
+IMPORTANT: Ce setup configure le service LMTP avec le socket Unix correct pour Postfix.
+Le socket /var/spool/postfix/private/dovecot doit correspondre exactement à la configuration
+virtual_transport = lmtp:unix:private/dovecot dans Postfix main.cf
+
 fix
 
 
@@ -268,19 +272,24 @@ password_query = SELECT email as user, password FROM virtual_users WHERE email='
     '$1ssl = yes'
   );
 
-  // Write back the modified content
-  fs.writeFileSync("/etc/dovecot/conf.d/10-master.conf", masterContent, 'utf-8');
-  //   // LMTP listener
-  // Using a more compatible approach for adding LMTP configuration
-  const lmtpConfig = `    #mode = 0666
+  // Configure LMTP service for Postfix integration
+  // This creates the socket that Postfix expects for local mail delivery
+  // CRITICAL: The socket path must match what Postfix expects in virtual_transport
+  // Postfix config: virtual_transport = lmtp:unix:private/dovecot
+  // This creates: /var/spool/postfix/private/dovecot
+  const lmtpServiceConfig = `
+service lmtp {
+  unix_listener /var/spool/postfix/private/dovecot {
     mode = 0600
     user = postfix
-    group = postfix`;
+    group = postfix
+  }
+}`;
 
-  // Find the line with unix_listener /var/spool/postfix/private/dovecot-lmtp and insert after it
+  // Replace the existing LMTP service configuration
   masterContent = masterContent.replace(
-    /(unix_listener \/var\/spool\/postfix\/private\/dovecot-lmtp \{)/m,
-    '$1\n' + lmtpConfig
+    /^service lmtp \{[\s\S]*?^}/m,
+    lmtpServiceConfig.trim()
   );
 
   // Postfix smtp-auth
