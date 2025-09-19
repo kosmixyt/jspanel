@@ -52,7 +52,6 @@ export class MysqlManager {
         this.validateIdentifier(name, "database name")
         const conn = await this.getDatabase()
         await conn.query(`DROP DATABASE IF EXISTS \`${name}\``)
-
         try {
             return await db.mysqlDatabase.delete({ where: { name } })
         } catch (err) {
@@ -68,7 +67,6 @@ export class MysqlManager {
 
         const data: any = { username, host, password }
         if (ownerId) data.Owner = { connect: { id: ownerId } }
-
         const existing = await db.mysqlUser.findUnique({ where: { username } })
         if (!existing) {
             return db.mysqlUser.create({ data })
