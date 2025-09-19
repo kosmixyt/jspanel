@@ -43,11 +43,11 @@ function replaceTextInFile(filePath: string, searchedValues: string[], replaceVa
 export async function SetupPostfix(config: SetupPostfixOptions) {
 
     // await $`apt update`.quiet();
-    console.log("Installing required packages...");
-    await $`DEBIAN_FRONTEND=noninteractive apt install -y ${RequiredPackages}`.quiet();
-    console.log("Installed required packages");
-    $`echo "postfix postfix/main_mailer_type select Internet Site" | debconf-set-selections`.quiet();
-    $`echo "postfix postfix/mailname string ${config.domain.domain}" | debconf-set-selections`.quiet();
+    // console.log("Installing required packages...");
+    // await $`DEBIAN_FRONTEND=noninteractive apt install -y ${RequiredPackages}`.quiet();
+    // console.log("Installed required packages");
+    // $`echo "postfix postfix/main_mailer_type select Internet Site" | debconf-set-selections`.quiet();
+    // $`echo "postfix postfix/mailname string ${config.domain.domain}" | debconf-set-selections`.quiet();
     fs.copyFileSync(`${postfixPath}/main.cf`, `${savePath}/main.cf.bak`);
     fs.copyFileSync(`${postfixPath}/master.cf`, `${savePath}/master.cf.bak`);
     fs.copyFileSync(`${assetPath}/main.cf.kosmix`, `${postfixPath}/main.cf`);

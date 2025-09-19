@@ -202,26 +202,3 @@ export class sslManager {
 
     }
 }
-
-// --- main function outside class ---
-async function main() {
-    sslManager.VerifySynchronization()
-    // Exemple d'utilisation pour créer un certificat
-    // const ssl = new SslRequester(["test2.kosmix.me"], "flo.cl25spt@gmail.com");
-    // await ssl.requestCertificate();
-
-    // Exemple d'utilisation pour supprimer un certificat spécifique
-    // const sslManager = new SslRequester([], "flo.cl25spt@gmail.com", user);
-    // await sslManager.deleteCertificate("test2.kosmix.me");
-
-
-    // Exemple d'utilisation pour lister tous les certificats
-    // const certificates = await sslManager.listCertificates();
-    // console.log("Available certificates:", certificates);
-
-    // Exemple d'utilisation pour supprimer automatiquement les certificats expirés
-    // const deletedCerts = await sslManager.deleteExpiredCertificates();
-    // console.log("Deleted expired certificates:", deletedCerts);
-}
-
-main()

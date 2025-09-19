@@ -35,9 +35,18 @@ export async function SetupMysql(config: SetupMysqlOptions) {
     console.log("MySQL installed successfully");
     console.log("Securing MySQL installation...");
     await $`mysql --execute="ALTER USER 'root'@'localhost' IDENTIFIED BY '${config.rootPassword}'; flush privileges;"`;
-    await $`mysql --execute "DROP DATABASE IF EXISTS ${config.dbName}; CREATE DATABASE IF NOT EXISTS ${config.dbName};" -u root -p${config.rootPassword}`;
+
+    console.log("Configuring MySQL to accept remote connections...");
+    // Replace bind-address in MySQL configuration
+    await $`sed -i 's/bind-address.*= 127.0.0.1/bind-address = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf`;
+
+    await $`mysql --execute "DROP DATABASE IF EXISTS ${config.dbName}; CREATE DATABAS    CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY 'votre_mot_de_passe';E IF NOT EXISTS ${config.dbName};" -u root -p${config.rootPassword}`;
     await $`mysql --execute "DROP USER IF EXISTS '${config.dbUser}'@'localhost'; CREATE USER '${config.dbUser}'@'localhost' IDENTIFIED BY '${config.dbPassword}';" -u root -p${config.rootPassword}`;
     await $`mysql --execute "GRANT ALL PRIVILEGES ON ${config.dbName}.* TO '${config.dbUser}'@'localhost';" -u root -p${config.rootPassword}`;
+
+    // Allow root user to connect from anywhere
+    await $`mysql --execute "CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '${config.rootPassword}';" -u root -p${config.rootPassword}`;
+    await $`mysql --execute "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;" -u root -p${config.rootPassword}`;
     await $`mysql --execute "FLUSH PRIVILEGES;" -u root -p${config.rootPassword}`;
     await $`mysql --execute "USE ${config.dbName}; DROP TABLE IF EXISTS virtual_aliases; DROP TABLE IF EXISTS virtual_users; DROP TABLE IF EXISTS virtual_domains;" -u root -p${config.rootPassword}`;
     await $`mysql --execute "USE ${config.dbName}; CREATE TABLE \`virtual_domains\` (\`id\` int(11) NOT NULL auto_increment,\`name\` varchar(50) NOT NULL,PRIMARY KEY (\`id\`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;" -u root -p${config.rootPassword}`;

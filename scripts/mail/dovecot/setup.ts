@@ -109,6 +109,8 @@ si un client se connecte en imap/pop3 non ssl (ou ssl non présent dans /etc/dov
 ssl_cert = </etc/dovecot/private/dovecot.pem
 ssl_key = </etc/dovecot/private/dovecot.key
 
+fix
+
 
 */
 const savePath = '/workspace/scripts/mail/dovecot/save'

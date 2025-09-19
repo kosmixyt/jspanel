@@ -9,7 +9,7 @@ const RequiredPackages = [
 ]
 const assetsPath = "/workspace/scripts/mail/dkim/assets"
 const TrustedHostsPath = "/etc/opendkim/trusted.hosts"
-export async function Setup() {
+export async function SetupDkim() {
     console.log("Installing required packages...")
     await $`apt-get install -y ${RequiredPackages}`
     console.log("Setting up OpenDKIM...")
@@ -18,8 +18,8 @@ export async function Setup() {
     // add postfix to opendkim group
     await $`sudo gpasswd -a postfix opendkim`;
     // create opendkim spool dir
-    await $`sudo mkdir -p /var/spool/postfix/opendkim`
-    await $`sudo chown opendkim:postfix /var/spool/postfix/opendkim`
+    await $`sudo mkdir -p /var/lib/opendkim/`
+    await $`sudo chown opendkim:postfix /var/lib/opendkim/`
     fs.mkdirSync("/etc/opendkim/keys", { recursive: true })
 
 
@@ -34,5 +34,3 @@ localhost
 `
     fs.writeFileSync(TrustedHostsPath, TrustedHosts)
 }
-
-Setup()

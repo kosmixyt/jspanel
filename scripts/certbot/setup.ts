@@ -12,7 +12,6 @@ export async function SetupCertbot() {
     console.log("Installed required packages");
 }
 
-SetupCertbot()
 
 
 
