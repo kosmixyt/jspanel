@@ -23,6 +23,23 @@ export class DKIM {
         fs.appendFileSync("/etc/opendkim/trusted.hosts", `\n${domain.domain}\n*.${domain.domain}\n`)
         console.log(`DKIM keys generated for domain ${domain.domain}:`)
     }
+    public static async removeDomain(domain: Domain) {
+        const dkimPath = `/etc/opendkim/keys/${domain.domain}`
+        if (fs.existsSync(dkimPath)) {
+            fs.rmSync(dkimPath, { recursive: true, force: true })
+        }
+        let keyTable = fs.readFileSync(keyTablePath, 'utf-8')
+        keyTable = keyTable.split('\n').filter(line => !line.includes(domain.domain)).join('\n')
+        fs.writeFileSync(keyTablePath, keyTable)
+        let signingTable = fs.readFileSync(signingTablePath, 'utf-8')
+        signingTable = signingTable.split('\n').filter(line => !line.includes(domain.domain)).join('\n')
+        fs.writeFileSync(signingTablePath, signingTable)
+        let trustedHosts = fs.readFileSync("/etc/opendkim/trusted.hosts", 'utf-8')
+        trustedHosts = trustedHosts.split('\n').filter(line => !line.includes(domain.domain)).join('\n')
+        fs.writeFileSync("/etc/opendkim/trusted.hosts", trustedHosts)
+        await $`sudo systemctl restart opendkim`;
+        console.log(`DKIM keys removed for domain ${domain.domain}`);
+    }
     public static async setupPostfix() {
         // Créer le répertoire pour le socket dans le chroot Postfix
         await $`sudo mkdir -p /var/spool/postfix/var/run`.quiet();

@@ -371,6 +371,28 @@ export class DovecotManager {
     await this.restart();
     console.log(`Added ${domains.length} domain(s) to Dovecot with SSL`);
   }
+  public static async RemoveSsl(domains: Domain[]) {
+    // on retire les domains du ssl
+    // on reload dovecot
+    for (const domain of domains) {
+      console.log(`Removing domain ${domain.domain} from Dovecot`);
+      const lines = fs.readFileSync("/etc/dovecot/conf.d/10-ssl.conf", 'utf-8').split('\n');
+      const startIndex = lines.findIndex(line => line.includes(`local_name ${domain.domain} {`));
+      if (startIndex === -1) {
+        console.warn(`Domain ${domain.domain} not found in Dovecot SSL config`);
+        continue;
+      }
+      let endIndex = startIndex;
+      while (endIndex < lines.length && !lines[endIndex]!.includes('}')) {
+        endIndex++;
+      }
+      // Remove the block including the closing brace
+      lines.splice(startIndex, endIndex - startIndex + 1);
+      fs.writeFileSync("/etc/dovecot/conf.d/10-ssl.conf", lines.join('\n'));
+    }
+    await this.restart();
+    console.log(`Removed ${domains.length} domain(s) from Dovecot SSL config`);
+  }
   public static async restart() {
     console.log(`Restarting Dovecot...`);
     await $`systemctl restart dovecot`.quiet();

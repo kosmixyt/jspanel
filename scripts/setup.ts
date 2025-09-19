@@ -11,22 +11,9 @@ import mysql from "mysql2/promise"
 import { MailManager } from "./mail/manager";
 import { DomainManager } from "./domains/domains";
 import { PostfixManager } from "./mail/postfix/manager";
+import { MysqlManager } from "./mysql/manager";
 
-let localDatabase: null | mysql.Connection = null
-export const mysqlLocalDbConfig = {
-    host: 'localhost',
-    user: 'root',
-    password: 'rootpassword',
-}
 export const MailserverName = "mailserver"
-export async function getDatabase() {
-    if (localDatabase) return localDatabase
-    localDatabase = await mysql.createConnection({
-        ...mysqlLocalDbConfig,
-        multipleStatements: true,
-    })
-    return localDatabase
-}
 
 
 export async function Setup() {
@@ -102,13 +89,13 @@ async function getMainDomain(user: User) {
 }
 async function main() {
     console.log("Starting setup...")
-    const connection = await getDatabase();
+    const connection = await MysqlManager.getDatabase();
     console.log("Connected to database")
     const user = await getAdminUser()
     // const domain = await DomainManager.addDomain("goster.xyz", user, { enableEmail: true, emailConfig: { dkimSetup: true }, requestSsl: true })
     // DomainManager.NewMailBox(domain, user, "kosmix", "floflo92")
-    PostfixManager.addSsl("goster.xyz", `/etc/letsencrypt/live/goster.xyz/fullchain.pem`, `/etc/letsencrypt/live/goster.xyz/privkey.pem`)
-    PostfixManager.restart()
+    // PostfixManager.addSsl("goster.xyz", `/etc/letsencrypt/live/goster.xyz/fullchain.pem`, `/etc/letsencrypt/live/goster.xyz/privkey.pem`)
+    // PostfixManager.restart()
     console.log("Setup completed.")
 }
 main()

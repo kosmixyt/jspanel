@@ -24,12 +24,34 @@ export class MailManager {
         await DovecotManager.AddSsl([domain], ssl)
         console.log(results)
     }
+    public static async removeDomain(domain: Domain) {
+        const local = await getDatabase()
+        await local.execute(`DELETE FROM ${MailserverName}.virtual_domains WHERE name = ?`, [domain.domain])
+        await DKIM.removeDomain(domain)
+        const mailboxes = await db.mailBox.findMany({
+            where: {
+                domainId: domain.id
+            },
+            include: { Domain: true }
+        })
+        for (const mailbox of mailboxes) {
+            await this.deleteMailbox(mailbox)
+        }
+    }
+
     public static async EnableDkimForDomain(domain: Domain) {
         await DKIM.addDomain(domain)
+    }
+    public static async DisableDkimForDomain(domain: Domain) {
+        await DKIM.removeDomain(domain)
     }
     public static async createMailbox(domain: Domain, user: User, username: string, password: string): Promise<MailBox> {
         const local = await getDatabase()
         const email = `${username}@${domain.domain}`
+        const existingUser = await local.execute(`SELECT id FROM ${MailserverName}.virtual_users WHERE email = ?`, [email])
+        if (existingUser[1].length > 0) {
+            throw new Error(`Mailbox ${email} already exists`)
+        }
         var hashedPassword = execSync(`doveadm pw -s SHA512-CRYPT -p "${password}"`, { encoding: 'utf8' }).trim();
         hashedPassword = hashedPassword.replace("{SHA512-CRYPT}", "")
         console.log(`Creating mailbox for ${email} with password ${password} (hashed: ${hashedPassword})`)
@@ -52,6 +74,16 @@ export class MailManager {
             }
         })
         return mail;
+    }
+    public static async deleteMailbox(mailbox: Prisma.MailBoxGetPayload<{ include: { Domain: true } }>) {
+        const local = await getDatabase()
+        const email = `${mailbox.username}@${mailbox.Domain.domain}`
+        await local.execute(`DELETE FROM ${MailserverName}.virtual_users WHERE email = ?`, [email])
+        await db.mailBox.delete({
+            where: {
+                id: mailbox.id
+            }
+        })
     }
 
 }
