@@ -183,6 +183,35 @@ postmaster_address = postmaster@${config.mainDomain.domain}`);
   // %n : variable Dovecot = nom d'utilisateur (ex: john)
   // Résultat final : /var/mail/vhosts/example.com/john/
   FileEditor.replacePattern("/etc/dovecot/conf.d/10-mail.conf", /^mail_location = .*/m, "mail_location = maildir:/var/mail/vhosts/%d/%n/");
+  // // set mail_plugins = $mail_plugins quota (uncomment if commented)
+  // const mailPluginsLine = FileEditor.findLineContaining("/etc/dovecot/conf.d/10-mail.conf", "mail_plugins =");
+  // if (mailPluginsLine) {
+  //   FileEditor.uncommentLine("/etc/dovecot/conf.d/10-mail.conf", mailPluginsLine);
+  //   FileEditor.replacePattern("/etc/dovecot/conf.d/10-mail.conf", /^mail_plugins = (.*)/m, "mail_plugins = $1 quota");
+  // } else {
+  //   // If the line is not found, append it at the end of the file
+  //   FileEditor.appendToFile("/etc/dovecot/conf.d/10-mail.conf", "\nmail_plugins = $mail_plugins quota\n");
+  // }
+
+  // const quotaFile = "/etc/dovecot/conf.d/90-quota.conf";
+  // const quotaConfig = `plugin {
+  //   quota = maildir:User quota
+  //   quota_rule = *:storage=1G          # quota par défaut : 1 Go
+  //   quota_rule2 = Trash:storage=100M   # max 100 Mo dans la corbeille
+  //   quota_rule3 = Junk:ignore          # pas de quota pour Spam 
+  // }`;
+
+  // if (!fs.existsSync(quotaFile)) {
+  //   fs.writeFileSync(quotaFile, quotaConfig + '\n', 'utf-8');
+  // } else {
+  //   const existing = fs.readFileSync(quotaFile, 'utf-8');
+  //   if (!existing.includes('quota = maildir:User quota') && !/quota_rule\s*=/.test(existing)) {
+  //     FileEditor.appendToFile(quotaFile, '\n' + quotaConfig + '\n');
+  //   } else {
+  //     console.log('Quota configuration already present in 90-quota.conf');
+  //   }
+  // }
+
 
   // on crée l'arborescence /var/mail/vhosts/<domain>
   await fs.mkdirSync(`/var/mail/vhosts/${config.mainDomain.domain}`, { recursive: true });
@@ -222,13 +251,12 @@ postmaster_address = postmaster@${config.mainDomain.domain}`);
 
   //   // dovecot-sql.conf.ext
   //   // on ajoute la config mysql à dovecot pour la passdb
-  const sqlConf = `
+  FileEditor.appendToFile("/etc/dovecot/dovecot-sql.conf.ext", `
 driver = mysql
 connect = host=127.0.0.1 dbname=${config.mailserverDb} user=${config.mailserverUser} password=${config.mailserverPassword}
 default_pass_scheme = SHA512-CRYPT
 password_query = SELECT email as user, password FROM virtual_users WHERE email='%u';
-`;
-  FileEditor.appendToFile("/etc/dovecot/dovecot-sql.conf.ext", sqlConf);
+`);
 
   //   // on donne les droits à vmail sur /etc/dovecot et son contenu
   //   await $`chown -R vmail:dovecot /etc/dovecot`.quiet();
