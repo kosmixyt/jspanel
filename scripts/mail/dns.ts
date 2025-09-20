@@ -27,7 +27,7 @@ export class DnsRecord {
     }
 }
 
-export function parseDnsRecord(record: string): DnsRecord {
+export function ParseDnsRecord(record: string): DnsRecord {
     // Support both formats:
     // 1. Standard: "name. IN TYPE value" 
     // 2. Simple: "TYPE name value" (legacy)

@@ -27,12 +27,7 @@ export async function Setup() {
     const domain = await getMainDomain(user)
     console.log("Created default domain: kosmix.me")
     await SetupCertbot();
-    // const ssl = await sslManager.requestCertificate([domain], user.email ?? "flo.cl25spt@gmail.com", user)
-    const ssl = await db.ssl.findFirstOrThrow({
-        where: { domains: { some: { id: domain.id } }, }
-        , include: { domains: true }
-    })
-
+    const ssl = await SSLManager.requestCertificate(db, [domain], user.email ?? "flo.cl25spt@gmail.com", user)
     await SetupPostfix({
         domain: domain,
         dbName: "mailserver",
@@ -50,11 +45,10 @@ export async function Setup() {
     DKIM.setupPostfix()
     DovecotManager.AddSsl([domain], ssl)
     DKIM.addDomain(domain)
-    // restart dkim and postfix
     await DovecotManager.restart()
     await DKIM.restart()
 }
-// Setup()
+Setup()
 
 async function getAdminUser() {
     let user = await db.user.findFirstOrThrow({ where: { Admin: true } })
@@ -87,15 +81,15 @@ async function getMainDomain(user: User) {
     }
     return domain;
 }
-async function main() {
-    console.log("Starting setup...")
-    const connection = await MysqlManager.getDatabase();
-    console.log("Connected to database")
-    const user = await getAdminUser()
-    // const domain = await DomainManager.addDomain("goster.xyz", user, { enableEmail: true, emailConfig: { dkimSetup: true }, requestSsl: true })
-    // DomainManager.NewMailBox(domain, user, "kosmix", "floflo92")
-    // PostfixManager.addSsl("goster.xyz", `/etc/letsencrypt/live/goster.xyz/fullchain.pem`, `/etc/letsencrypt/live/goster.xyz/privkey.pem`)
-    // PostfixManager.restart()
-    console.log("Setup completed.")
-}
-main()
+// async function main() {
+//     console.log("Starting setup...")
+//     const connection = await MysqlManager.getDatabase();
+//     console.log("Connected to database")
+//     const user = await getAdminUser()
+//     // const domain = await DomainManager.addDomain("goster.xyz", user, { enableEmail: true, emailConfig: { dkimSetup: true }, requestSsl: true })
+//     // DomainManager.NewMailBox(domain, user, "kosmix", "floflo92")
+//     // PostfixManager.addSsl("goster.xyz", `/etc/letsencrypt/live/goster.xyz/fullchain.pem`, `/etc/letsencrypt/live/goster.xyz/privkey.pem`)
+//     // PostfixManager.restart()
+//     console.log("Setup completed.")
+// }
+// main()

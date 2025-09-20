@@ -1,7 +1,7 @@
 import type { Domain } from "@prisma/client";
 import { $ } from "bun"
 import fs from "fs"
-import { parseDnsRecord, type DnsRecord } from "../manager";
+import { ParseDnsRecord, type DnsRecord } from "../dns";
 
 const keyTablePath = "/etc/opendkim/key.table"
 const signingTablePath = "/etc/opendkim/signing.table"
@@ -37,7 +37,7 @@ export class DKIM {
             .replace(/"\s+"/g, '') // Join split quoted strings
             .trim();
 
-        return parseDnsRecord(cleanedContent);
+        return ParseDnsRecord(cleanedContent);
     }
     public static async removeDomain(domain: Domain) {
         const dkimPath = `/etc/opendkim/keys/${domain.domain}`

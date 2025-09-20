@@ -6,7 +6,7 @@ import { execSync } from "child_process";
 import { DovecotManager } from "./dovecot/setup";
 import { MysqlManager } from "scripts/mysql/manager";
 import { Config } from "scripts/config/config";
-import { DnsRecord, parseDnsRecord } from "./dns";
+import { DnsRecord, ParseDnsRecord } from "./dns";
 
 
 
