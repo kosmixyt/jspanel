@@ -1,13 +1,16 @@
 import type { Domain } from "@prisma/client";
 import { $ } from "bun"
 import fs from "fs"
+import { parseDnsRecord, type DnsRecord } from "../manager";
 
 const keyTablePath = "/etc/opendkim/key.table"
 const signingTablePath = "/etc/opendkim/signing.table"
 const postfixConfigPath = "/etc/postfix/main.cf";
 
+
+
 export class DKIM {
-    public static async addDomain(domain: Domain) {
+    public static async addDomain(domain: Domain): Promise<DnsRecord> {
         const dkimPath = `/etc/opendkim/keys/${domain.domain}`
         if (!fs.existsSync(dkimPath)) {
             fs.mkdirSync(dkimPath, { recursive: true })
@@ -22,6 +25,19 @@ export class DKIM {
         // add to trusted hosts
         fs.appendFileSync("/etc/opendkim/trusted.hosts", `\n${domain.domain}\n*.${domain.domain}\n`)
         console.log(`DKIM keys generated for domain ${domain.domain}:`)
+        const dkimContent = fs.readFileSync(`${dkimPath}/mail.txt`, 'utf-8');
+        console.log('DKIM file content:', dkimContent);
+
+        // Parse DKIM record from OpenDKIM generated file
+        // The file format is usually: mail._domainkey IN TXT "v=DKIM1; k=rsa; p=..."
+        // But can be multiline, so we need to clean it up
+        const cleanedContent = dkimContent
+            .replace(/\n/g, ' ')  // Remove newlines
+            .replace(/\s+/g, ' ') // Normalize whitespace
+            .replace(/"\s+"/g, '') // Join split quoted strings
+            .trim();
+
+        return parseDnsRecord(cleanedContent);
     }
     public static async removeDomain(domain: Domain) {
         const dkimPath = `/etc/opendkim/keys/${domain.domain}`

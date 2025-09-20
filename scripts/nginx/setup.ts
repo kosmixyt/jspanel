@@ -70,5 +70,7 @@ class NginxManager {
         console.log("Reloading Nginx...")
         $`systemctl reload nginx`.quiet()
     }
-    static async addSite(config: SiteOptions) { }
+    static async addSite(config: SiteOptions) {
+        console.log("Adding site...")
+    }
 }
