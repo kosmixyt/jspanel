@@ -19,10 +19,10 @@ const RequiredPackages = [
 export async function SetupMysql(config: SetupMysqlOptions) {
     console.log("Setting up MySQL database...");
     // check if mysql is installed throw if installed
-    // const isMysqlInstalled = await $`which mysql`.quiet().nothrow()
-    // if (isMysqlInstalled.exitCode == 0) {
-    //     throw new Error("MySQL is already installed");
-    // }
+    const isMysqlInstalled = await $`which mysql`.quiet().nothrow()
+    if (isMysqlInstalled.exitCode == 0) {
+        throw new Error("MySQL is already installed");
+    }
     console.log("Installing required packages...");
     await $`apt update`;
     await $`apt install -y ${RequiredPackages}`;

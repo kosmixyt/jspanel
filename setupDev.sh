@@ -18,4 +18,3 @@ if [ -z "$email" ]; then
   read -p "Enter your git user.email: " email
   git config --global user.email "$email"
 fi
-git clone https://github.com/kosmixyt/jspanel /workspace

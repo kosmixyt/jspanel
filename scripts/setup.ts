@@ -12,6 +12,7 @@ import { MailManager } from "./mail/manager";
 import { DomainManager } from "./domains/domains";
 import { PostfixManager } from "./mail/postfix/manager";
 import { MysqlManager } from "./mysql/manager";
+import dotenv from "dotenv"
 
 export const MailserverName = "mailserver"
 
@@ -25,7 +26,7 @@ export async function Setup() {
     })
     const user = await getAdminUser()
     const domain = await getMainDomain(user)
-    console.log("Created default domain: kosmix.me")
+    console.log("Created default domain: goster.xyz")
     await SetupCertbot();
     const ssl = await SSLManager.requestCertificate(db, [domain], user.email ?? "flo.cl25spt@gmail.com", user)
     await SetupPostfix({
@@ -64,11 +65,11 @@ async function getAdminUser() {
     return user;
 }
 async function getMainDomain(user: User) {
-    let domain = await db.domain.findFirst({ where: { domain: "kosmix.me" } })
+    let domain = await db.domain.findFirst({ where: { domain: "goster.xyz" } })
     if (!domain) {
         domain = await db.domain.create({
             data: {
-                domain: "kosmix.me",
+                domain: "goster.xyz",
                 Owner: {
                     connect: {
                         id: user.id
@@ -77,7 +78,7 @@ async function getMainDomain(user: User) {
                 }
             }
         })
-        console.log("Created default domain: kosmix.me")
+        console.log("Created default domain: goster.xyz")
     }
     return domain;
 }
