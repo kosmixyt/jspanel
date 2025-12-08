@@ -14,16 +14,9 @@ import { DnsRecord, ParseDnsRecord } from "./dns";
 export interface DomainAddConfig {
     dkimSetup: boolean;
 }
-
-
-
-
-
-
 export interface DomainAddResult {
     DnsRecords: DnsRecord[];
 }
-
 export class MailManager {
 
     public static async addDomain(domain: Domain, user: User, config: DomainAddConfig, ssl?: Prisma.SslGetPayload<{ include: { domains: true } }>): Promise<DomainAddResult> {
@@ -31,7 +24,7 @@ export class MailManager {
         const local = await MysqlManager.getDatabase()
         const [results] = await local.execute(`INSERT INTO ${MailserverName}.virtual_domains (name) VALUES (?)`, [domain.domain])
         if (config.dkimSetup) {
-            const dkimRecord = await this.EnableDkimForDomain(domain)
+            const dkimRecord = await DKIM.addDomain(domain)
             records.push(dkimRecord)
         }
         if (ssl) {
@@ -59,12 +52,6 @@ export class MailManager {
         for (const mailbox of mailboxes) {
             await this.deleteMailbox(mailbox)
         }
-    }
-    public static async EnableDkimForDomain(domain: Domain): Promise<DnsRecord> {
-        return await DKIM.addDomain(domain)
-    }
-    public static async DisableDkimForDomain(domain: Domain) {
-        await DKIM.removeDomain(domain)
     }
     public static async DomainExists(domainName: string): Promise<boolean> {
         const local = await MysqlManager.getDatabase()
@@ -128,7 +115,6 @@ export class MailManager {
             const parts = ips.map(ip => ip.includes(':') ? `ip6:${ip}` : `ip4:${ip}`);
             spfValue = `v=spf1 ${parts.join(' ')} mx ~all`;
         }
-
         return new DnsRecord(domainName, 'TXT', spfValue);
     }
 
