@@ -26,7 +26,7 @@ export interface DomainAddResult {
 
 export class MailManager {
 
-    public static async addDomain(domain: Domain, user: User, config: DomainAddConfig, ssl: Prisma.SslGetPayload<{ include: { domains: true } }>): Promise<DomainAddResult> {
+    public static async addDomain(domain: Domain, user: User, config: DomainAddConfig, ssl?: Prisma.SslGetPayload<{ include: { domains: true } }>): Promise<DomainAddResult> {
         const records: DnsRecord[] = []
         const local = await MysqlManager.getDatabase()
         const [results] = await local.execute(`INSERT INTO ${MailserverName}.virtual_domains (name) VALUES (?)`, [domain.domain])
@@ -34,7 +34,9 @@ export class MailManager {
             const dkimRecord = await this.EnableDkimForDomain(domain)
             records.push(dkimRecord)
         }
-        await DovecotManager.AddSsl([domain], ssl)
+        if (ssl) {
+            await DovecotManager.AddSsl([domain], ssl)
+        }
         const spfRecord = await this.SpfRecord(domain.domain)
         records.push(spfRecord)
         // dmarc record
@@ -64,11 +66,23 @@ export class MailManager {
     public static async DisableDkimForDomain(domain: Domain) {
         await DKIM.removeDomain(domain)
     }
+    public static async DomainExists(domainName: string): Promise<boolean> {
+        const local = await MysqlManager.getDatabase()
+        const [rows] = await local.execute(`SELECT id FROM ${MailserverName}.virtual_domains WHERE name = ?`, [domainName])
+        if (Array.isArray(rows) && rows.length > 0) {
+            return true
+        }
+        return false
+    }
     public static async createMailbox(domain: Domain, user: User, username: string, password: string): Promise<MailBox> {
+        // check if domain exists in mysql
+        if(!await this.DomainExists(domain.domain)) {
+            throw new Error(`Domain ${domain.domain} does not exist in mysql`)
+        }
         const local = await MysqlManager.getDatabase()
         const email = `${username}@${domain.domain}`
-        const existingUser = await local.execute(`SELECT id FROM ${MailserverName}.virtual_users WHERE email = ?`, [email])
-        if (existingUser[1].length > 0) {
+        const [rows] = await local.execute(`SELECT id FROM ${MailserverName}.virtual_users WHERE email = ?`, [email])
+        if (Array.isArray(rows) && rows.length > 0) {
             throw new Error(`Mailbox ${email} already exists`)
         }
         var hashedPassword = execSync(`doveadm pw -s SHA512-CRYPT -p "${password}"`, { encoding: 'utf8' }).trim();

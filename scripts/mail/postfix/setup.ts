@@ -69,7 +69,6 @@ export async function SetupPostfix(config: SetupPostfixOptions) {
     await $`systemctl restart postfix`.quiet();
 
 
-    await $`sed -i '18,39s/^#//' ${postfixPath}/master.cf`;
     await $`chmod -R o-rwx ${postfixPath}`;
     PostfixManager.restart()
 }

@@ -18,41 +18,45 @@ export const MailserverName = "mailserver"
 
 
 export async function Setup() {
-    await SetupMysql({
-        dbName: "mailserver",
-        dbPassword: "mailserverpassword",
-        dbUser: "mailuser",
-        rootPassword: "rootpassword",
-    })
+    // await SetupMysql({
+    //     dbName: "mailserver",
+    //     dbPassword: "mailserverpassword",
+    //     dbUser: "mailuser",
+    //     rootPassword: "rootpassword",
+    // })
     const user = await getAdminUser()
     const domain = await getMainDomain(user)
-    console.log("Created default domain: goster.xyz")
-    await SetupCertbot();
-    const ssl = await SSLManager.requestCertificate(db, [domain], user.email ?? "flo.cl25spt@gmail.com", user)
-    await SetupPostfix({
-        domain: domain,
-        dbName: "mailserver",
-        dbPassword: "mailserverpassword",
-        dbUser: "mailuser",
-    })
-    await SetupDovecot({
-        mailserverDb: "mailserver",
-        mailserverPassword: "mailserverpassword",
-        mailserverUser: "mailuser",
-        mainDomain: domain,
-        ssl,
-    })
-    await SetupDkim()
-    DKIM.setupPostfix()
-    DovecotManager.AddSsl([domain], ssl)
-    DKIM.addDomain(domain)
+    // console.log("Created default domain: goster.xyz")
+    // // await SetupCertbot();
+    // const ssl = await SSLManager.requestCertificate(db, [domain], "flo.cl25spt@gmail.com", user)
+    // await SetupPostfix({
+    //     domain: domain,
+    //     dbName: "mailserver",
+    //     dbPassword: "mailserverpassword",
+    //     dbUser: "mailuser",
+    // })
+    // await SetupDovecot({
+    //     mailserverDb: "mailserver",
+    //     mailserverPassword: "mailserverpassword",
+    //     mailserverUser: "mailuser",
+    //     mainDomain: domain,
+    //     ssl,
+    // })
+    // await SetupDkim()
+    // DKIM.setupPostfix()
+    // DovecotManager.AddSsl([domain], ssl)
+    // DKIM.addDomain(domain)
+    // await DovecotManager.restart()
+    // await DKIM.restart()
+    // await MailManager.addDomain(domain, user, { dkimSetup: false}, undefined)
     await DovecotManager.restart()
-    await DKIM.restart()
+    // await MailManager.createMailbox(domain, user, "kosmix", "floflo92")
+    console.log("Setup completed.")
 }
 Setup()
 
 async function getAdminUser() {
-    let user = await db.user.findFirstOrThrow({ where: { Admin: true } })
+    let user = await db.user.findFirst({ where: { Admin: true } })
     if (!user) {
         user = await db.user.create({
             data: {

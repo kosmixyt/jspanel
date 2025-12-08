@@ -18,29 +18,29 @@ const RequiredPackages = [
 
 export async function SetupMysql(config: SetupMysqlOptions) {
     console.log("Setting up MySQL database...");
-    // check if mysql is installed throw if installed
-    const isMysqlInstalled = await $`which mysql`.quiet().nothrow()
-    if (isMysqlInstalled.exitCode == 0) {
-        throw new Error("MySQL is already installed");
-    }
-    console.log("Installing required packages...");
-    await $`apt update`;
-    await $`apt install -y ${RequiredPackages}`;
-    console.log("Installed required packages");
-    // check if mysql is installed
-    const mysqlCheck = await $`which mysql`.quiet().nothrow()
-    if (mysqlCheck.exitCode != 0) {
-        return console.error("Failed to install MySQL");
-    }
-    console.log("MySQL installed successfully");
-    console.log("Securing MySQL installation...");
-    await $`mysql --execute="ALTER USER 'root'@'localhost' IDENTIFIED BY '${config.rootPassword}'; flush privileges;"`;
+    // // check if mysql is installed throw if installed
+    // const isMysqlInstalled = await $`which mysql`.quiet().nothrow()
+    // if (isMysqlInstalled.exitCode == 0) {
+    //     throw new Error("MySQL is already installed");
+    // }
+    // console.log("Installing required packages...");
+    // await $`apt update`;
+    // await $`apt install -y ${RequiredPackages}`;
+    // console.log("Installed required packages");
+    // // check if mysql is installed
+    // const mysqlCheck = await $`which mysql`.quiet().nothrow()
+    // if (mysqlCheck.exitCode != 0) {
+    //     return console.error("Failed to install MySQL");
+    // }
+    // console.log("MySQL installed successfully");
+    // console.log("Securing MySQL installation...");
+    // await $`mysql --execute="ALTER USER 'root'@'localhost' IDENTIFIED BY '${config.rootPassword}'; flush privileges;"`;
 
-    console.log("Configuring MySQL to accept remote connections...");
-    // Replace bind-address in MySQL configuration
-    await $`sed -i 's/bind-address.*= 127.0.0.1/bind-address = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf`;
+    // console.log("Configuring MySQL to accept remote connections...");
+    // // Replace bind-address in MySQL configuration
+    // await $`sed -i 's/bind-address.*= 127.0.0.1/bind-address = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf`;
 
-    await $`mysql --execute "DROP DATABASE IF EXISTS ${config.dbName}; CREATE DATABAS    CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY 'votre_mot_de_passe';E IF NOT EXISTS ${config.dbName};" -u root -p${config.rootPassword}`;
+    await $`mysql --execute "DROP DATABASE IF EXISTS ${config.dbName}; CREATE DATABASE ${config.dbName}; CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY 'votre_mot_de_passe';" -u root -p${config.rootPassword}`;
     await $`mysql --execute "DROP USER IF EXISTS '${config.dbUser}'@'localhost'; CREATE USER '${config.dbUser}'@'localhost' IDENTIFIED BY '${config.dbPassword}';" -u root -p${config.rootPassword}`;
     await $`mysql --execute "GRANT ALL PRIVILEGES ON ${config.dbName}.* TO '${config.dbUser}'@'localhost';" -u root -p${config.rootPassword}`;
 
@@ -55,6 +55,9 @@ export async function SetupMysql(config: SetupMysqlOptions) {
     await $`mysql --execute "ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY '${config.rootPassword}';" -u root -p${config.rootPassword}`;
     // restart mysql service
     await $`systemctl restart mysql`.quiet();
+
+
+    
     console.log("MySQL setup completed successfully");
 }
 
