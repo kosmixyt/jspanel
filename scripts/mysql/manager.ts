@@ -1,6 +1,6 @@
 import { $ } from "bun"
 import mysql from "mysql2/promise"
-import { db } from "~/server/db"
+import { db } from "../../app"
 
 let localDatabase: null | mysql.Connection = null
 export const mysqlLocalDbConfig = {

@@ -1,12 +1,12 @@
 import type { Domain, MailBox, Prisma, User } from "@prisma/client";
-import { MailserverName } from "scripts/setup";
-import { db } from "~/server/db";
+import { MailserverName } from "../setup";
 import { DKIM } from "./dkim/dkim";
 import { execSync } from "child_process";
 import { DovecotManager } from "./dovecot/setup";
-import { MysqlManager } from "scripts/mysql/manager";
-import { Config } from "scripts/config/config";
+import { MysqlManager } from "../mysql/manager";
+import { Config } from "../config/config";
 import { DnsRecord, ParseDnsRecord } from "./dns";
+import { db } from "../../app";
 
 
 

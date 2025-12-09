@@ -1,7 +1,7 @@
 import type { Domain, MailBox, Prisma, User } from "@prisma/client";
-import { SSLManager } from "scripts/certbot/ssl";
-import { MailManager, type DomainAddConfig } from "scripts/mail/manager";
-import { db } from "~/server/db";
+import { SSLManager } from "../certbot/ssl";
+import { MailManager, type DomainAddConfig } from "../mail/manager";
+import { db } from "../../app";
 
 interface DomainConfig {
     // any specific config for the domain
@@ -50,6 +50,30 @@ export class DomainManager {
             }
             return dm;
         }, { timeout: 40000 });
+    }
+
+    public static async deleteDomain(domainId: string): Promise<void> {
+        const domain = await db.domain.findUnique({
+            where: { id: domainId },
+            include: {
+                Ssl: { include: { domains: true, Owner: true } },
+                Owner: true,
+            },
+        });
+
+        if (!domain) {
+            throw new Error("Domain not found");
+        }
+
+        await MailManager.removeDomain(domain);
+
+        if (domain.Ssl) {
+            await db.domain.update({ where: { id: domain.id }, data: { sslId: null } });
+            const sslManager = new SSLManager();
+            await sslManager.deleteCertificate(domain.Ssl);
+        }
+
+        await db.domain.delete({ where: { id: domain.id } });
     }
     public static async NewMailBox(domain: Domain, user: User, username: string, password: string): Promise<MailBox> {
         return await MailManager.createMailbox(domain, user, username, password);

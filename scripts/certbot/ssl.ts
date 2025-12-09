@@ -4,8 +4,8 @@ import fs from "fs";
 import path from "path";
 import os from "os"
 import type { User, Domain, Ssl, Prisma } from "@prisma/client";
-import { db } from "~/server/db";
 import type { PrismaClient } from "@prisma/client/extension";
+import { db } from "../../app";
 
 
 interface SslPath {

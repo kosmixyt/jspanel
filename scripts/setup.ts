@@ -1,4 +1,3 @@
-import { db } from "~/server/db";
 import { SSLManager } from "./certbot/ssl";
 import { DovecotManager, SetupDovecot } from "./mail/dovecot/setup";
 import { SetupPostfix } from "./mail/postfix/setup";
@@ -13,6 +12,7 @@ import { DomainManager } from "./domains/domains";
 import { PostfixManager } from "./mail/postfix/manager";
 import { MysqlManager } from "./mysql/manager";
 import dotenv from "dotenv"
+import { db } from "../app";
 
 export const MailserverName = "mailserver"
 
@@ -53,7 +53,6 @@ export async function Setup() {
     // await MailManager.createMailbox(domain, user, "kosmix", "floflo92")
     console.log("Setup completed.")
 }
-Setup()
 
 async function getAdminUser() {
     let user = await db.user.findFirst({ where: { Admin: true } })
